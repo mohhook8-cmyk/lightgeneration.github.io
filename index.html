@@ -31,70 +31,58 @@ button:hover{background:#38f8ff;color:#020617}
 </style>
 </head>
 <body>
-
 <div class="top">🌑 LUNAR WIRELESS POWER</div>
 <div class="title">Microwave Power From Moon To Earth</div>
-<div class="subtitle">2.4 GHz &bull; HDPLUS Rectenna &bull; HSMS-2850 &bull; ESP32</div>
-
+<div class="subtitle">2.4 GHz &bull; HDPLUS Rectenna &bull; HSMS-2850 &bull; ESP32 &bull; WOKWI SIM</div>
 <div class="transfer">
   <div>🌙<span class="label-moon">MOON<br>SOLAR + TEG</span></div>
   <div class="beam">〰️📡〰️</div>
   <div>🌍<span class="label-earth">EARTH<br>RECTENNA</span></div>
 </div>
-
 <div><span class="live"><span class="live-dot">●</span> LIVE FROM ESP32 (WOKWI)</span></div>
-
 <div id="big">0.00 V</div>
 <div id="label">ELECTRICITY TRANSFERRED TO EARTH BY MICROWAVE</div>
 <div id="sub">Moon: Solar + TEG &rarr; MT3608 &rarr; USB Dongle 2.4GHz &rarr; Earth: HDPLUS Rectenna &rarr; ESP32 &rarr; Cloud &rarr; This Domain<br>EDS: Separate HV Booster + Copper Combs (Not connected to ESP32)</div>
-
 <canvas id="wave"></canvas>
-
 <div class="boxes">
   <div class="box"><b id="power">0.00 mW</b><span>RECEIVED POWER</span></div>
   <div class="box"><b id="status">Connecting...</b><span>STATUS</span></div>
 </div>
-
 <button onclick="simulateBlock()">☁️ Simulate Cloud / Block Beam</button>
 <button onclick="simulateBoost()">⚡ Boost Signal</button>
 <button onclick="location.reload()">🔄 Reset</button>
-
 <div class="footer">
-  Public Domain: https://mohhook8-cmyk.github.io/lunarlightgenerationindex.html<br>
-  Wokwi: Turn Potentiometer to change voltage, Domain updates in 20s<br>
+  Public Domain: https://mohhook8-cmyk.github.io/lightgeneration.github.io/<br>
+  Wokwi: Turn Potentiometer to change voltage, Domain updates in 5s<br>
   LCD: SDA -> 21, SCL -> 22, VCC -> 5V, GND -> GND &bull; Rectenna -> ESP32 GPIO34
 </div>
-
 <script>
-// ===== CHANGE THESE TO YOUR THINGSPEAK VALUES =====
-const CHANNEL_ID = "YOUR_CHANNEL_ID"; // <-- Paste your Channel ID, e.g. 1234567
-const READ_API_KEY = "YOUR_READ_API_KEY"; // <-- Paste your Read API Key
-// ==================================================
-
+// ===== EDIT THESE 2 LINES ONLY - MUST MATCH WOKWI CHANNEL ID =====
+const CHANNEL_ID = "2987654";
+const READ_API_KEY = "YOUR_READ_API_KEY";
+// ===================================================================
 let data = [];
 let ctx = document.getElementById('wave').getContext('2d');
 let demoMode = false;
 let demoVoltage = 0;
-
 async function update(){
   if(demoMode){
     showData(demoVoltage, demoVoltage*demoVoltage/50*1000, "DEMO • " + new Date().toLocaleTimeString());
     return;
   }
   try{
-    let r = await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds/last.json?api_key=${READ_API_KEY}`);
+    // EDIT: Added ?t= to stop GitHub caching
+    let r = await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds/last.json?api_key=${READ_API_KEY}&t=${Date.now()}`);
     let j = await r.json();
     let v = parseFloat(j.field1) || 0;
     let p = parseFloat(j.field2) || 0;
     showData(v, p, 'LIVE • ' + new Date(j.created_at).toLocaleTimeString());
   }catch(e){
     document.getElementById('status').innerText = 'Waiting for Wokwi... (Demo)';
-    // Demo if no cloud yet, so judges still see design
     let demoV = 0.8 + Math.random()*0.6;
     showData(demoV, demoV*demoV/50*1000, 'DEMO MODE • No Cloud Yet');
   }
 }
-
 function showData(v, p, statusText){
   document.getElementById('big').innerText = v.toFixed(2) + ' V';
   document.getElementById('power').innerText = p.toFixed(2) + ' mW';
@@ -108,19 +96,10 @@ function showData(v, p, statusText){
   });
   ctx.stroke();
 }
-
-function simulateBlock(){
-  demoMode = true; demoVoltage = 0;
-  document.getElementById('status').innerText = 'BLOCKED • Cloud';
-}
-function simulateBoost(){
-  demoMode = true; demoVoltage = 1.50;
-  document.getElementById('status').innerText = 'BOOSTED • Demo';
-}
-
+function simulateBlock(){ demoMode = true; demoVoltage = 0; }
+function simulateBoost(){ demoMode = true; demoVoltage = 1.50; }
 setInterval(update, 5000);
 update();
 </script>
-
 </body>
 </html>
