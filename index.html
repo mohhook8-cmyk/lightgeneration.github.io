@@ -1,62 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LUNAR WIRELESS POWER</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 60%, #000 100%);color:white;font-family:Arial,sans-serif;text-align:center;min-height:100vh;padding:20px}
-.top{font-size:14px;letter-spacing:2px;color:#a5b4fc}.title{font-size:22px;font-weight:bold;margin:8px 0}
-.transfer{display:flex;align-items:center;justify-content:center;gap:15px;margin:25px 0;font-size:48px}
-.beam{font-size:30px;animation:pulse 1s infinite;color:#38f8ff}@keyframes pulse{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
-.live{display:inline-block;background:#22c55e;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:bold}
-#big{font-size:95px;font-weight:900;color:#38f8ff;text-shadow:0 0 25px #38f8ff;margin:12px 0}
-#label{font-size:15px;letter-spacing:2px;font-weight:bold}#sub{font-size:13px;color:#94a3b8;margin:10px 0}
-canvas{width:92%;max-width:520px;height:80px;background:#0f172a;border-radius:12px;border:1px solid #1e293b;margin:10px auto;display:block}
-.boxes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:15px 0}
-.box{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:12px 16px;min-width:130px}
-.box b{display:block;font-size:18px;color:#38f8ff}.box span{font-size:11px;color:#94a3b8}
-.footer{font-size:11px;color:#64748b;margin-top:20px}
-</style>
-</head>
-<body>
-<div class="top">🌑 LUNAR WIRELESS POWER</div>
-<div class="title">Microwave Power From Moon To Earth</div>
-<div>2.4 GHz &bull; HDPLUS Rectenna &bull; HSMS-2850 &bull; ESP32 &bull; Piezo Behind Solar &bull; NO Divider</div>
-<div class="transfer"><div>🌙</div><div class="beam">〰️📡〰️</div><div>🌍</div></div>
-<div><span class="live">● LIVE FROM ESP32 - CORRECT DATA - NO DIVIDER</span></div>
-<div id="big">0.00 V</div>
-<div id="label">ELECTRICITY TRANSFERRED TO EARTH BY MICROWAVE</div>
-<div id="sub">Rectenna DIRECT to ESP32 GPIO34 - NO Voltage Divider - Piezo Behind Solar Panel<br>Moon: Solar + Piezo + TEG &rarr; MT3608 &rarr; USB Dongle 2.4GHz &rarr; Earth: HDPLUS Rectenna &rarr; ESP32 &rarr; Cloud (3579832) &rarr; This Domain</div>
-<canvas id="wave"></canvas>
-<div class="boxes">
-<div class="box"><b id="power">0.00 mW</b><span>RECEIVED POWER</span></div>
-<div class="box"><b id="status">Connecting...</b><span>STATUS</span></div>
-</div>
-<div class="footer">Public Domain: https://mohhook8-cmyk.github.io/lightgeneration.github.io/<br>ThingSpeak Channel: 3579832 &bull; Synced every 15s &bull; LCD = Domain</div>
+<style>body{background:#020617;color:white;font-family:Arial;text-align:center;padding:20px}
+#big{font-size:90px;font-weight:bold;color:#38f8ff;text-shadow:0 0 20px #38f8ff}
+.live{background:#22c55e;padding:5px 15px;border-radius:20px}
+#ago{opacity:.7;font-size:13px;margin-top:8px}
+</style></head><body>
+<div>🌑 LUNAR WIRELESS POWER</div>
+<div style="font-size:40px">🌙 〰📡〰 🌍</div>
+<div><span class="live">● LIVE FROM THINGSPEAK</span></div>
+<div id="big">--.-- V</div>
+<div>ELECTRICITY TRANSFERRED TO EARTH BY MICROWAVE</div>
+<div id="ago">connecting...</div>
+<div id="pwr" style="margin-top:10px;opacity:.8"></div>
 <script>
-const CHANNEL_ID = "3579832";
-const READ_API_KEY = "SO6DS5R2K4B4PXSV";
-let data=[];let ctx=document.getElementById('wave').getContext('2d');
+const READ_KEY = "SO6DS5R2K4B4PXSV";
+const CH = "3579832";
 async function update(){
   try{
-    let r = await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds/last.json?api_key=${READ_API_KEY}&t=${Date.now()}`);
-    let j = await r.json();
-    let v = parseFloat(j.field1) || 0;
-    let p = parseFloat(j.field2) || 0;
-    // FIXED: No x2, same rounding as LCD
-    v = Math.round(v*100)/100; p = Math.round(p*100)/100;
+    const r = await fetch(`https://api.thingspeak.com/channels/${CH}/feeds/last.json?api_key=${READ_KEY}`);
+    const j = await r.json();
+    const v = parseFloat(j.field1);
+    const p = parseFloat(j.field2);
     document.getElementById('big').innerText = v.toFixed(2) + ' V';
-    document.getElementById('power').innerText = p.toFixed(2) + ' mW';
-    document.getElementById('status').innerText = 'CORRECT • SYNCED WITH LCD • ' + new Date(j.created_at).toLocaleTimeString();
-    data.push(v); if(data.length>50) data.shift();
-    ctx.clearRect(0,0,520,80); ctx.strokeStyle='#38f8ff'; ctx.lineWidth=2; ctx.beginPath();
-    data.forEach((val,i)=>{let y=70-val*40; if(i==0)ctx.moveTo(i*10,y);else ctx.lineTo(i*10,y)}); ctx.stroke();
-  }catch(e){ document.getElementById('status').innerText='Waiting...'; }
+    document.getElementById('pwr').innerText = 'Power: ' + p.toFixed(2) + ' mW';
+    // Show how old the data is
+    const age = Math.round((Date.now() - new Date(j.created_at).getTime())/1000);
+    document.getElementById('ago').innerText = 'Updated ' + age + 's ago • ThingSpeak updates every 15s max';
+  }catch(e){ document.getElementById('ago').innerText = 'Retrying...'; }
 }
-setInterval(update, 15000);
 update();
-</script>
-</body>
-</html>
+setInterval(update, 5000); // FIXED: was slow, now every 5s
+</script></body></html>
