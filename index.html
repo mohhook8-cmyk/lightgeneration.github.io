@@ -39,10 +39,10 @@ button:hover{background:#38f8ff;color:#020617}
   <div class="beam">〰️📡〰️</div>
   <div>🌍<span class="label-earth">EARTH<br>RECTENNA</span></div>
 </div>
-<div><span class="live"><span class="live-dot">●</span> LIVE FROM ESP32 (WOKWI)</span></div>
+<div><span class="live"><span class="live-dot">●</span> LIVE FROM ESP32 (WOKWI) - CHANNEL 3579832</span></div>
 <div id="big">0.00 V</div>
 <div id="label">ELECTRICITY TRANSFERRED TO EARTH BY MICROWAVE</div>
-<div id="sub">Moon: Solar + TEG &rarr; MT3608 &rarr; USB Dongle 2.4GHz &rarr; Earth: HDPLUS Rectenna &rarr; ESP32 &rarr; Cloud &rarr; This Domain<br>EDS: Separate HV Booster + Copper Combs (Not connected to ESP32)</div>
+<div id="sub">Moon: Solar + TEG &rarr; MT3608 &rarr; USB Dongle 2.4GHz &rarr; Earth: HDPLUS Rectenna &rarr; ESP32 &rarr; Cloud (Channel 3579832) &rarr; This Domain<br>EDS: Separate HV Booster + Copper Combs (Not connected to ESP32)</div>
 <canvas id="wave"></canvas>
 <div class="boxes">
   <div class="box"><b id="power">0.00 mW</b><span>RECEIVED POWER</span></div>
@@ -53,14 +53,14 @@ button:hover{background:#38f8ff;color:#020617}
 <button onclick="location.reload()">🔄 Reset</button>
 <div class="footer">
   Public Domain: https://mohhook8-cmyk.github.io/lightgeneration.github.io/<br>
-  Wokwi: Turn Potentiometer to change voltage, Domain updates in 5s<br>
+  ThingSpeak Channel: 3579832 &bull; Wokwi: Turn Potentiometer, Domain updates in 5s<br>
   LCD: SDA -> 21, SCL -> 22, VCC -> 5V, GND -> GND &bull; Rectenna -> ESP32 GPIO34
 </div>
 <script>
-// ===== EDIT THESE 2 LINES ONLY - MUST MATCH WOKWI CHANNEL ID =====
-const CHANNEL_ID = "2987654";
-const READ_API_KEY = "YOUR_READ_API_KEY";
-// ===================================================================
+// ===== YOUR CHANNEL ID - ADDED =====
+const CHANNEL_ID = "3579832";
+const READ_API_KEY = "YOUR_READ_API_KEY"; // <-- Still need your Read Key from Channel 3579832 -> API Keys tab
+// =====================================
 let data = [];
 let ctx = document.getElementById('wave').getContext('2d');
 let demoMode = false;
@@ -71,12 +71,11 @@ async function update(){
     return;
   }
   try{
-    // EDIT: Added ?t= to stop GitHub caching
     let r = await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds/last.json?api_key=${READ_API_KEY}&t=${Date.now()}`);
     let j = await r.json();
     let v = parseFloat(j.field1) || 0;
     let p = parseFloat(j.field2) || 0;
-    showData(v, p, 'LIVE • ' + new Date(j.created_at).toLocaleTimeString());
+    showData(v, p, 'LIVE • Channel 3579832 • ' + new Date(j.created_at).toLocaleTimeString());
   }catch(e){
     document.getElementById('status').innerText = 'Waiting for Wokwi... (Demo)';
     let demoV = 0.8 + Math.random()*0.6;
